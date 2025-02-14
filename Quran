@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المقريء - مشغل القرآن الكريم</title>
+    <style>
+        /* نفس الأنماط السابقة بدون تغيير */
+        :root {
+            --primary-color: #FFD700;
+            --secondary-color: #1a1a1a;
+            --background-color: #0a0a0a;
+            --text-color: #ffffff;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-family: 'Tajawal', sans-serif;
+            padding-bottom: 120px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 2rem 0;
+            color: var(--primary-color);
+            font-size: 2.5em;
+            text-shadow: 0 0 15px rgba(255,215,0,0.4);
+        }
+
+        .selection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .selection-card {
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px solid var(--primary-color);
+            border-radius: 15px;
+            padding: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .selection-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2);
+        }
+
+        .selection-header {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .selection-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .selection-item {
+            padding: 1rem;
+            margin: 0.5rem 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .selection-item.active {
+            background: var(--primary-color);
+            color: var(--background-color);
+        }
+
+        .youtube-container {
+            margin: 2rem auto;
+            max-width: 800px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            display: none;
+        }
+
+        #youtubePlayer {
+            width: 100%;
+            height: 450px;
+            border: none;
+        }
+
+        .player-controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--secondary-color);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            border-top: 2px solid var(--primary-color);
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.3);
+        }
+
+        .play-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px var(--primary-color);
+        }
+
+        .play-btn i {
+            font-size: 1.5rem;
+            color: var(--secondary-color);
+        }
+
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+            max-width: 200px;
+        }
+
+        .volume-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 5px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .speed-control {
+            position: relative;
+        }
+
+        .speed-btn {
+            background: rgba(255,215,0,0.1);
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .speed-btn:hover {
+            background: var(--primary-color);
+            color: var(--secondary-color);
+        }
+
+        .speed-options {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: var(--secondary-color);
+            border: 2px solid var(--primary-color);
+            border-radius: 15px;
+            padding: 0.5rem;
+            display: none;
+        }
+
+        .speed-option {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .speed-option:hover {
+            background: var(--primary-color);
+            color: var(--secondary-color);
+        }
+
+        @media (max-width: 768px) {
+            #youtubePlayer {
+                height: 250px;
+            }
+
+            .player-controls {
+                padding: 1rem;
+                gap: 1rem;
+                flex-wrap: wrap;
+            }
+
+            .play-btn {
+                width: 50px;
+                height: 50px;
+            }
+
+            .volume-container {
+                order: 3;
+                width: 100%;
+                max-width: none;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🕋 المقريء</h1>
+        
+        <div class="selection-grid">
+            <div class="selection-card">
+                <div class="selection-header">اختر القارئ</div>
+                <div class="selection-list" id="recitersList">
+                    <div class="selection-item" data-reciter="ياسر الدوسري">ياسر الدوسري</div>
+                    <div class="selection-item" data-reciter="محمد أيوب">محمد أيوب</div>
+                    <div class="selection-item" data-reciter="عبد الرحمن السديس">عبد الرحمن السديس</div>
+                    <div class="selection-item" data-reciter="سعد الغامدي">سعد الغامدي</div>
+                    <div class="selection-item" data-reciter="عبدالباسط عبدالصمد">عبدالباسط عبدالصمد</div>
+                    <div class="selection-item" data-reciter="ماهر المعيقلي">ماهر المعيقلي</div>
+                </div>
+            </div>
+            <footer>مرحباً بكم </footer>
+            
+            <div class="selection-card">
+                <div class="selection-header">اختر السورة</div>
+                <div class="selection-list" id="surahsList">
+                    <!-- سيتم تعبئة السور تلقائيا -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="youtube-container" id="youtubeContainer">
+            <div id="youtubePlayer"></div>
+        </div>
+    </div>
+
+    <div class="player-controls">
+        <button class="play-btn" id="playButton">
+            <i class="fas fa-play"></i>
+        </button>
+        
+ <div class="volume-container">
+            <i class="fas fa-volume-up" id="volumeIcon"></i>
+            <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="50">
+        </div>
+
+        <!-- باقي عناصر التحكم -->
+        <div class="speed-control">
+            <button class="speed-btn" id="speedBtn">سرعة التشغيل</button>
+            <div class="speed-options" id="speedOptions">
+              <div class="speed-option" data-speed="0.25">0.25x</div>
+                <div class="speed-option" data-speed="0.5">0.5x</div>
+                <div class="speed-option" data-speed="0.75">0.75x</div>
+                <div class="speed-option"  data-speed="1">عادي</div>
+                <div class="speed-option" data-speed="1.25">1.25x</div>
+                <div class="speed-option" data-speed="1.5">1.5x</div>
+               <div class="speed-option" data-speed="1.75">1.75x</div>
+                <div class="speed-option" data-speed="2">2x</div>
+                
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // بيانات جميع القراء
+        const allReciters = {
+            "ياسر الدوسري": {
+                "الفاتحة": "KyilK1tMOWQ",
+                "البقرة": "S4gfjxfw15w",
+                "آل عمران": "0z3IliW9Ysk",
+                // أضف بقية السور...
+            },
+            "محمد أيوب": {
+                "الفاتحة": "NRW7zoZ4Vl4",
+                "البقرة": "Yk8mWr8eyrE",
+                "آل عمران": "H6j8yQ0zI9A",
+                // أضف بقية السور...
+            },
+            "عبد الرحمن السديس": {
+                "الفاتحة": "Wx2qTlYmeYA",
+                "البقرة": "G8xKOD3pQ8I",
+                "آل عمران": "5qRl7xxU0CU",
+                // أضف بقية السور...
+            },
+            "سعد الغامدي": {
+                "الفاتحة": "5_3V-5EeG2w",
+                "البقرة": "9Yq4T7iW_3g",
+                "آل عمران": "GjZ8Wb5JqjA",
+                // أضف بقية السور...
+            }
+        };
+
+        // قائمة السور الكاملة
+        const surahNames = [
+            "الفاتحة", "البقرة", "آل عمران", "النساء", "المائدة",
+            "الأنعام", "الأعراف", "الأنفال", "التوبة", "يونس",
+            "هود", "يوسف", "الرعد", "إبراهيم", "الحجر",
+            "النحل", "الإسراء", "الكهف", "مريم", "طه",
+            "الأنبياء", "الحج", "المؤمنون", "النور", "الفرقان",
+            "الشعراء", "النمل", "القصص", "العنكبوت", "الروم",
+            "لقمان", "السجدة", "الأحزاب", "سبأ", "فاطر",
+            "يس", "الصافات", "ص", "الزمر", "غافر",
+            "فصلت", "الشورى", "الزخرف", "الدخان", "الجاثية",
+            "الأحقاف", "محمد", "الفتح", "الحجرات", "ق",
+            "الذاريات", "الطور", "النجم", "القمر", "الرحمن",
+            "الواقعة", "الحديد", "المجادلة", "الحشر", "الممتحنة",
+            "الصف", "الجمعة", "المنافقون", "التغابن", "الطلاق",
+            "التحريم", "الملك", "القلم", "الحاقة", "المعارج",
+            "نوح", "الجن", "المزمل", "المدثر", "القيامة",
+            "الإنسان", "المرسلات", "النبأ", "النازعات", "عبس",
+            "التكوير", "الانفطار", "المطففين", "الانشقاق", "البروج",
+            "الطارق", "الأعلى", "الغاشية", "الفجر", "البلد",
+            "الشمس", "الليل", "الضحى", "الشرح", "التين",
+            "العلق", "القدر", "البينة", "الزلزلة", "العاديات",
+            "القارعة", "التكاثر", "العصر", "الهمزة", "الفيل",
+            "قريش", "الماعون", "الكوثر", "الكافرون", "النصر",
+            "المسد", "الإخلاص", "الفلق", "الناس"
+        ];
+
+        let ytPlayer;
+        let isPlaying = false;
+        let currentVolume = 50;
+        let currentSpeed = 1;
+
+        function initUI() {
+            const surahsList = document.getElementById('surahsList');
+            surahsList.innerHTML = surahNames.map(surah => `
+                <div class="selection-item" data-surah="${surah}">${surah}</div>
+            `).join('');
+            
+            setupEventListeners();
+        }
+
+        function setupEventListeners() {
+            document.querySelectorAll('.selection-item').forEach(item => {
+                item.addEventListener('click', handleSelection);
+            });
+
+            document.getElementById('playButton').addEventListener('click', togglePlay);
+            document.getElementById('volumeSlider').addEventListener('input', handleVolume);
+            document.getElementById('volumeIcon').addEventListener('click', toggleMute);
+            document.getElementById('speedBtn').addEventListener('click', toggleSpeedMenu);
+            document.querySelectorAll('.speed-option').forEach(option => {
+                option.addEventListener('click', handleSpeedChange);
+            });
+        }
+
+        function handleSelection() {
+            const parent = this.parentNode.id;
+            document.querySelectorAll(`#${parent} .selection-item`).forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+            loadContent();
+        }
+
+        function loadContent() {
+            const reciter = document.querySelector('#recitersList .active');
+            const surah = document.querySelector('#surahsList .active');
+            
+            if (reciter && surah) {
+                const reciterName = reciter.dataset.reciter;
+                const surahName = surah.dataset.surah;
+                
+                const videoId = allReciters[reciterName][surahName];
+                if (videoId) {
+                    ytPlayer.loadVideoById(videoId);
+                    document.getElementById('youtubeContainer').style.display = 'block';
+                }
+            }
+        }
+
+        // بقية الدوال كما هي بدون تغيير
+        function togglePlay() {
+            isPlaying ? ytPlayer.pauseVideo() : ytPlayer.playVideo();
+            updatePlayButton();
+        }
+
+        function handleVolume(e) {
+            currentVolume = e.target.value;
+            ytPlayer.setVolume(currentVolume);
+            updateVolumeIcon();
+        }
+
+        function toggleMute() {
+            currentVolume = currentVolume === 0 ? 50 : 0;
+            document.getElementById('volumeSlider').value = currentVolume;
+            ytPlayer.setVolume(currentVolume);
+            updateVolumeIcon();
+        }
+
+        function toggleSpeedMenu() {
+            document.getElementById('speedOptions').style.display = 
+                document.getElementById('speedOptions').style.display === 'block' ? 'none' : 'block';
+        }
+
+        function handleSpeedChange(e) {
+            currentSpeed = parseFloat(e.target.dataset.speed);
+            ytPlayer.setPlaybackRate(currentSpeed);
+            document.getElementById('speedBtn').textContent = `${currentSpeed}x`;
+            document.getElementById('speedOptions').style.display = 'none';
+        }
+
+        function onYouTubeIframeAPIReady() {
+            ytPlayer = new YT.Player('youtubePlayer', {
+                height: '450',
+                width: '100%',
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            event.target.setVolume(currentVolume);
+            event.target.setPlaybackRate(currentSpeed);
+        }
+
+        function onPlayerStateChange(event) {
+            isPlaying = event.data === YT.PlayerState.PLAYING;
+            updatePlayButton();
+        }
+
+        function updatePlayButton() {
+            const icon = document.querySelector('#playButton i');
+            icon.className = isPlaying ? 'fas fa-pause' : 'fas fa-play';
+        }
+
+        function updateVolumeIcon() {
+            const icon = document.getElementById('volumeIcon');
+            icon.className = currentVolume === 0 ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+        }
+
+        window.addEventListener('load', initUI);
+    </script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+</body>
+</html>
